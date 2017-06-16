@@ -4,11 +4,26 @@ BEGIN {
 
 {
     # calculates the degree of similarity
-    if ( (1 - leven_dist($NF, search_string) / (length($NF) + length(search_string))) * 100 >= 70 ) {
+
+    sim = similarity($NF, search_string)
+
+    # search_stringが対象文字列より短ければ、同じ長さの部分文字列でスコアを計算し最大値をとる
+    # (部分文字列が近いときにマッチさせたいため)
+    for (i = 0; i + length(search_string) <= length($NF); i++) {
+        target = substr($NF, i, length(search_string))
+        s = similarity(target, search_string)
+        if (s > sim) { sim = s }
+    }
+
+    if ( sim >= 70 ) {
         # When the degree of similarity of search_string is greater than or equal to 70%,
         # to display the candidate path
         print $0
     }
+}
+
+function similarity(target, search_string) {
+    return (1 - leven_dist(target, search_string) / (length(target) + length(search_string))) * 100 
 }
 
 # leven_dist returns the Levenshtein distance two text string
